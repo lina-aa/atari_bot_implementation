@@ -69,22 +69,33 @@ def make_kingkong_env(rank, seed=0, render_mode=None):
         return env
     return _init
 
-def train_model(save_model_path, tensorboard_path, training_timestamps, n_envs=4, seed=0):
+def train_model(save_model_path, tensorboard_path, training_timestamps, n_envs=4, seed=0, model_path=None):
     train_env = SubprocVecEnv([make_kingkong_env(i, seed=seed) for i in range(n_envs)])
     train_env = VecFrameStack(train_env, n_stack=4)
 
-    model = PPO(
-        "CnnPolicy",          
-        train_env, 
-        verbose=1, 
-        tensorboard_log=tensorboard_path,
-        learning_rate=0.00025, 
-        n_steps=128,          
-        batch_size=256,
-        ent_coef=0.01          
-    )
+    if model_path:
+        model = PPO.load(model_path, env=train_env)
 
-    model.learn(total_timesteps=training_timestamps) # callback=DebugCallback()
+        model.learn(
+            total_timesteps=training_timestamps,
+            reset_num_timesteps=False, 
+            tb_log_name="PPO_1",     
+        )
+
+    else:
+        model = PPO(
+            "CnnPolicy",          
+            train_env, 
+            verbose=1, 
+            tensorboard_log=tensorboard_path,
+            learning_rate=0.00025, 
+            n_steps=128,          
+            batch_size=256,
+            ent_coef=0.01          
+        )
+
+        model.learn(total_timesteps=training_timestamps) # callback=DebugCallback()
+        
     model.save(save_model_path)
     train_env.close()
 
@@ -100,7 +111,7 @@ def test_model(model_path, testing_timestamps):
         action, _ = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = test_env.step(action)
         if rewards > 0:
-            print(f"REWARDED -> {rewards}")
+            print(f"REWARDED -> {rewards}") # basic bomb gives 1.
         test_env.render()
         if dones[0]:
             obs = test_env.reset()
@@ -110,7 +121,10 @@ def test_model(model_path, testing_timestamps):
 if __name__ == '__main__':
     # v1 is so stupid he just learned how to jump przez bomby, uczony bez wrapera
     # v2 is even dumber bo stoi se w kącie i na zbawienie czeka, ale był uczony na głupim wrapperze
+    # v3 not the brightest one
     train_model("models/kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
 
-    model_path = "kingkong_ppo_v3.zip"
+    model_path = "models/kingkong_ppo_v3.zip"
     test_model(model_path, 5000)
+
+    # train_model("models/kingkong_ppo_v4.zip", "./ppo_kingkong_v3_logs/", 2000000, model_path='models/kingkong_ppo_v3.zip')

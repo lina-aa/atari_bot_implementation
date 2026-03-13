@@ -7,4 +7,4 @@ Bot versions in this repo:
 2. v2 - bot with a early custom wrapper that gave additional reward for getting higher
 3. v3 - bot with upgraded wrapper
 
-Height RAM adress discovered throught experiments. It was identified as '0x21 (33)'.
+Height RAM adress discovered throught experiments. It was identified as '0x21 (33)', but it might be wrong.
