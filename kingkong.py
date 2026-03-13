@@ -4,6 +4,10 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_atari_env
 from stable_baselines3.common.vec_env import VecFrameStack
 
+"""
+Basic bot implementation using PPO 
+"""
+
 def train_model(train_env, save_model_path, tensorboard_path, training_timestamps):
 
     model = PPO(
@@ -28,7 +32,7 @@ def test_model(test_env, model_path, testing_timestamps):
     obs = test_env.reset()
 
     for _ in range(testing_timestamps):
-        action, _states = model.predict(obs, deterministic=True)
+        action, _ = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = test_env.step(action)
         test_env.render()
         if dones:
@@ -36,24 +40,25 @@ def test_model(test_env, model_path, testing_timestamps):
 
     test_env.close()
 
-# środowisko
+# environment
 env_id = "ALE/KingKong-v5"
 save_model_path = 'kingkong_ppo_v1.zip'
 tensorboard_path = './ppo_kingkong_img_logs/'
 training_timestamps = 200000
 
 train_env = make_atari_env(env_id, n_envs=4, seed=0) # specjalna funkcja która opakowuje atari na 84x84 bez kolorów do ppo
-train_env = VecFrameStack(train_env, n_stack=4)  # 4 env na raz
+train_env = VecFrameStack(train_env, n_stack=4)
 
-train_model(train_env, save_model_path, tensorboard_path, training_timestamps)
-
-# ładowanie modelu
+# loading model
 model_path = "kingkong_ppo_v1.zip"
 testing_timestamps = 5000
 
 test_env = make_atari_env(env_id, n_envs=1, env_kwargs={"render_mode": "human"})
 test_env = VecFrameStack(test_env, n_stack=4)
 
-test_model(test_env, model_path, testing_timestamps)
+if __name__ == '__main__':
+    train_model(train_env, save_model_path, tensorboard_path, training_timestamps)
+
+    test_model(test_env, model_path, testing_timestamps)
 
 

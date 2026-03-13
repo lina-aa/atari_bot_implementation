@@ -6,8 +6,10 @@ from stable_baselines3.common.atari_wrappers import AtariWrapper, EpisodicLifeEn
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
 
+"""
+Bot implementation with a custom wrapper
+"""
 
-# zachęta do wchodzenia do góry
 class KingKongHeightWrapper(gym.Wrapper):
 
     def __init__(self, env):
@@ -18,14 +20,14 @@ class KingKongHeightWrapper(gym.Wrapper):
         obs, reward, terminated, truncated, info = self.env.step(action)
         
         ram = self.unwrapped.ale.getRAM()
-        current_y = int(ram[0x21]) # adres completely vibe coded
+        current_y = int(ram[0x21])
 
         if self.highest_y is None:
             self.highest_y = current_y
             self.steps_without_progress = 0
  
         if current_y < self.highest_y and current_y > 0:
-            bonus = (self.highest_y - current_y) * 0.1 # random nagroda do góry
+            bonus = (self.highest_y - current_y) * 0.1
             reward += bonus
 
             self.highest_y = current_y
@@ -35,7 +37,7 @@ class KingKongHeightWrapper(gym.Wrapper):
             self.steps_without_progress += 1
 
             if self.steps_without_progress > 500:
-                reward -= 0.05 # żeby nie stał w miejscu
+                reward -= 0.05
             
         return obs, reward, terminated, truncated, info
 
@@ -53,7 +55,7 @@ class DebugCallback(BaseCallback):
     def _on_step(self):
         if any(self.locals.get('dones', [])):
             self.episode_count += 1
-            print(f"\n>>> EPIZOD SKOŃCZONY! Łącznie: {self.episode_count} | timesteps: {self.num_timesteps}")
+            print(f"\n>>> EPIZOD SKOŃCZONY - Łącznie: {self.episode_count} | timesteps: {self.num_timesteps}")
         return True
     
 def make_kingkong_env(rank, seed=0, render_mode=None):
@@ -95,7 +97,7 @@ def test_model(model_path, testing_timestamps):
     obs = test_env.reset()
 
     for _ in range(testing_timestamps):
-        action, _states = model.predict(obs, deterministic=True)
+        action, _ = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = test_env.step(action)
         if rewards > 0:
             print(f"REWARDED -> {rewards}")
@@ -108,7 +110,7 @@ def test_model(model_path, testing_timestamps):
 if __name__ == '__main__':
     # v1 is so stupid he just learned how to jump przez bomby, uczony bez wrapera
     # v2 is even dumber bo stoi se w kącie i na zbawienie czeka, ale był uczony na głupim wrapperze
-    train_model("kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
+    train_model("models/kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
 
     model_path = "kingkong_ppo_v3.zip"
     test_model(model_path, 5000)
