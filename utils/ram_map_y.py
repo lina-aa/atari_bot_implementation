@@ -1,0 +1,38 @@
+import gymnasium as gym
+import ale_py
+import time
+from pynput import keyboard
+
+current_action = 0
+
+def on_press(key):
+    global current_action
+    try:
+        if key == keyboard.Key.up: current_action = 2
+        elif key == keyboard.Key.down: current_action = 5
+        elif key == keyboard.Key.left: current_action = 4
+        elif key == keyboard.Key.right: current_action = 3
+        elif key == keyboard.Key.space: current_action = 1
+    except: pass
+
+def on_release(key):
+    global current_action
+    current_action = 0
+
+listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+listener.start()
+
+env = gym.make("ALE/KingKong-v5", render_mode="human")
+obs, _ = env.reset()
+
+print(f"{'akcja':>6} | {'0x1b (27)':>10} | {'0x21 (33)':>10}")
+
+while True:
+    obs, reward, terminated, truncated, info = env.step(current_action)
+    ram = env.unwrapped.ale.getRAM()
+
+    print(f"{current_action:>6} | {ram[0x1b]:>10} | {ram[0x21]:>10}", end="\r")
+
+    time.sleep(0.05)
+    if terminated or truncated:
+        obs, _ = env.reset()
