@@ -121,10 +121,10 @@ def test_model(model_path, testing_timestamps):
 if __name__ == '__main__':
     # v1 is so stupid he just learned how to jump przez bomby, uczony bez wrapera
     # v2 is even dumber bo stoi se w kącie i na zbawienie czeka, ale był uczony na głupim wrapperze
-    # v3 not the brightest one
+    # v3 not the brightest one but is maybe getting there
     train_model("models/kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
 
     model_path = "models/kingkong_ppo_v3.zip"
-    test_model(model_path, 5000)
+    # test_model(model_path, 5000)
 
-    # train_model("models/kingkong_ppo_v4.zip", "./ppo_kingkong_v3_logs/", 2000000, model_path='models/kingkong_ppo_v3.zip')
+    # train_model("models/kingkong_ppo_v3add.zip", "./ppo_kingkong_v3_logs/", 2000000, model_path='models/kingkong_ppo_v3.zip') - additional trening
