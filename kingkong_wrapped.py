@@ -42,9 +42,9 @@ class KingKongHeightWrapper(gym.Wrapper):
         return obs, reward, terminated, truncated, info
 
     def reset(self, **kwargs):
-        print(f"GOT highest_y -> {self.highest_y}")
+        # print(f"GOT highest_y -> {self.highest_y}")
         self.highest_y = None
-        print(f"RESET highest_y -> {self.highest_y}")
+        # print(f"RESET highest_y -> {self.highest_y}")
         return self.env.reset(**kwargs)
     
 class DebugCallback(BaseCallback):
@@ -110,8 +110,8 @@ def test_model(model_path, testing_timestamps):
     for _ in range(testing_timestamps):
         action, _ = model.predict(obs, deterministic=True)
         obs, rewards, dones, info = test_env.step(action)
-        if rewards > 0:
-            print(f"REWARDED -> {rewards}") # basic bomb gives 1.
+        # if rewards > 0:
+        #     print(f"REWARDED -> {rewards}") # basic bomb gives 1.
         test_env.render()
         if dones[0]:
             obs = test_env.reset()
@@ -121,10 +121,10 @@ def test_model(model_path, testing_timestamps):
 if __name__ == '__main__':
     # v1 is so stupid he just learned how to jump przez bomby, uczony bez wrapera
     # v2 is even dumber bo stoi se w kącie i na zbawienie czeka, ale był uczony na głupim wrapperze
-    # v3 not the brightest one but is maybe getting there
-    train_model("models/kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
+    # v3 not the brightest one but is maybe getting there, nie wchodzi po drabinie ale się nauczył korzystać z bomb 
+    # train_model("models/kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
 
-    model_path = "models/kingkong_ppo_v3.zip"
-    # test_model(model_path, 5000)
+    model_path = "models/kingkong_ppo_v3add.zip"
+    test_model(model_path, 5000)
 
     # train_model("models/kingkong_ppo_v3add.zip", "./ppo_kingkong_v3_logs/", 2000000, model_path='models/kingkong_ppo_v3.zip') - additional trening

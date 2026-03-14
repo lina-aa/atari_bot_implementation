@@ -42,7 +42,7 @@ def test_model(test_env, model_path, testing_timestamps):
 
 # environment
 env_id = "ALE/KingKong-v5"
-save_model_path = 'kingkong_ppo_v1.zip'
+save_model_path = 'models/kingkong_ppo_v1.zip'
 tensorboard_path = './ppo_kingkong_img_logs/'
 training_timestamps = 200000
 
@@ -50,7 +50,7 @@ train_env = make_atari_env(env_id, n_envs=4, seed=0) # specjalna funkcja która 
 train_env = VecFrameStack(train_env, n_stack=4)
 
 # loading model
-model_path = "kingkong_ppo_v1.zip"
+model_path = "models/kingkong_ppo_v1.zip"
 testing_timestamps = 5000
 
 test_env = make_atari_env(env_id, n_envs=1, env_kwargs={"render_mode": "human"})
