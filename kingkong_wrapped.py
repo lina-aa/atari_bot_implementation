@@ -31,6 +31,7 @@ class KingKongHeightWrapper(gym.Wrapper):
             reward += bonus
 
             self.highest_y = current_y
+            # steps without progess - v3
             self.steps_without_progress = 0
 
         else:

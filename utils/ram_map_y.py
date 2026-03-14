@@ -22,7 +22,7 @@ def on_release(key):
 listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 listener.start()
 
-env = gym.make("ALE/KingKong-v5", render_mode="human")
+env = gym.make("ALE/KingKong-v5", render_mode="human", mode=2)
 obs, _ = env.reset()
 
 print(f"{'akcja':>6} | {'0x1b (27)':>10} | {'0x21 (33)':>10}")
