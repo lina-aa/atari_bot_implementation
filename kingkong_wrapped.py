@@ -37,7 +37,7 @@ class KingKongHeightWrapperBase(gym.Wrapper):
 
 
 # bot v2 
-class KingKongHeightWrapper(KingKongHeightWrapperBase):
+class KingKongHeightWrapper1(KingKongHeightWrapperBase):
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)

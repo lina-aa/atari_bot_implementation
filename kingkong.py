@@ -46,7 +46,7 @@ save_model_path = 'models/kingkong_ppo_v1.zip'
 tensorboard_path = './logs/ppo_kingkong_img_logs/'
 training_timestamps = 200000
 
-train_env = make_atari_env(env_id, n_envs=4, seed=0) # special function, which makes 84Xx4 grayscale frames for PPO
+train_env = make_atari_env(env_id, n_envs=4, seed=0)
 train_env = VecFrameStack(train_env, n_stack=4)
 
 # loading model
