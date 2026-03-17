@@ -5,35 +5,69 @@ from stable_baselines3.common.vec_env import VecFrameStack, SubprocVecEnv, Dummy
 from stable_baselines3.common.atari_wrappers import AtariWrapper, EpisodicLifeEnv
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
+import os
 
 """
-Bot implementation with a custom wrapper
+Bot implementations with a custom wrappers (bot v2 and v3)
 """
 
-class KingKongHeightWrapper(gym.Wrapper):
+class KingKongHeightWrapperBase(gym.Wrapper):
 
     def __init__(self, env):
         super().__init__(env)
         self.highest_y = None
+        self.steps_without_progress = 0
+
+    def _get_current_y(self):
+        ram = self.unwrapped.ale.getRAM()
+        return int(ram[0x21])
+
+    def _initialize_tracking(self, current_y):
+        if self.highest_y is None:
+            self.highest_y = current_y
+            self.steps_without_progress = 0
+
+    def step(self, action):
+        raise NotImplementedError("Use KingKongHeightWrapper1 or KingKongHeightWrapper2.")
+
+    def reset(self, **kwargs):
+        self.highest_y = None
+        self.steps_without_progress = 0
+        return self.env.reset(**kwargs)
+
+
+# bot v2 
+class KingKongHeightWrapper(KingKongHeightWrapperBase):
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         
-        ram = self.unwrapped.ale.getRAM()
-        current_y = int(ram[0x21])
-
-        if self.highest_y is None:
-            self.highest_y = current_y
-            self.steps_without_progress = 0
+        current_y = self._get_current_y()
+        self._initialize_tracking(current_y)
  
         if current_y < self.highest_y and current_y > 0:
             bonus = (self.highest_y - current_y) * 0.1
             reward += bonus
 
             self.highest_y = current_y
-            # steps without progess - v3
-            self.steps_without_progress = 0
+            
+        return obs, reward, terminated, truncated, info
 
+# bot v3 
+class KingKongHeightWrapper2(KingKongHeightWrapperBase):
+
+    def step(self, action):
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        
+        current_y = self._get_current_y()
+        self._initialize_tracking(current_y)
+ 
+        if current_y < self.highest_y and current_y > 0:
+            bonus = (self.highest_y - current_y) * 0.1
+            reward += bonus
+
+            self.highest_y = current_y
+            self.steps_without_progress = 0
         else:
             self.steps_without_progress += 1
 
@@ -42,39 +76,26 @@ class KingKongHeightWrapper(gym.Wrapper):
             
         return obs, reward, terminated, truncated, info
 
-    def reset(self, **kwargs):
-        # print(f"GOT highest_y -> {self.highest_y}")
-        self.highest_y = None
-        # print(f"RESET highest_y -> {self.highest_y}")
-        return self.env.reset(**kwargs)
-    
-class DebugCallback(BaseCallback):
-    def __init__(self):
-        super().__init__()
-        self.episode_count = 0
-
-    def _on_step(self):
-        if any(self.locals.get('dones', [])):
-            self.episode_count += 1
-            print(f"\n>>> EPIZOD SKOŃCZONY - Łącznie: {self.episode_count} | timesteps: {self.num_timesteps}")
-        return True
-    
 def make_kingkong_env(rank, seed=0, render_mode=None):
     def _init():
         env = gym.make("ALE/KingKong-v5", render_mode=render_mode)
         env = AtariWrapper(env)    
         env = EpisodicLifeEnv(env)      
-        env = KingKongHeightWrapper(env)  
+        env = KingKongHeightWrapper1(env)  
         env = Monitor(env)
         env.reset(seed=seed + rank)
         return env
     return _init
 
-def train_model(save_model_path, tensorboard_path, training_timestamps, n_envs=4, seed=0, model_path=None):
+def train_model(save_model_path, tensorboard_path, training_timestamps, n_envs=4, seed=0, additional_training=False):
     train_env = SubprocVecEnv([make_kingkong_env(i, seed=seed) for i in range(n_envs)])
     train_env = VecFrameStack(train_env, n_stack=4)
 
-    if model_path:
+    if additional_training:
+        if not os.path.exists(save_model_path):
+            print(f"Model path {save_model_path} does not exist. Please provide a valid path for additional training.")
+            return
+
         model = PPO.load(model_path, env=train_env)
 
         model.learn(
@@ -95,7 +116,7 @@ def train_model(save_model_path, tensorboard_path, training_timestamps, n_envs=4
             ent_coef=0.01          
         )
 
-        model.learn(total_timesteps=training_timestamps) # callback=DebugCallback()
+        model.learn(total_timesteps=training_timestamps)
         
     model.save(save_model_path)
     train_env.close()
@@ -120,12 +141,8 @@ def test_model(model_path, testing_timestamps):
     test_env.close()
 
 if __name__ == '__main__':
-    # v1 is so stupid he just learned how to jump przez bomby, uczony bez wrapera
-    # v2 is even dumber bo stoi se w kącie i na zbawienie czeka, ale był uczony na głupim wrapperze
-    # v3 not the brightest one but is maybe getting there, nie wchodzi po drabinie ale się nauczył korzystać z bomb 
-    # train_model("models/kingkong_ppo_v3.zip", "./ppo_kingkong_v3_logs/", 200000)
-
     model_path = "models/kingkong_ppo_v3add.zip"
-    test_model(model_path, 5000)
+    log_path = "./logs/ppo_kingkong_v3_logs/"
 
-    # train_model("models/kingkong_ppo_v3add.zip", "./ppo_kingkong_v3_logs/", 2000000, model_path='models/kingkong_ppo_v3.zip') - additional trening
+    # train_model(model_path, log_path,  2000000, additional_training=True)
+    test_model(model_path, 5000)

@@ -5,7 +5,7 @@ from stable_baselines3.common.env_util import make_atari_env
 from stable_baselines3.common.vec_env import VecFrameStack
 
 """
-Basic bot implementation using PPO 
+Basic bot implementation using PPO (Bot v1)
 """
 
 def train_model(train_env, save_model_path, tensorboard_path, training_timestamps):
@@ -43,10 +43,10 @@ def test_model(test_env, model_path, testing_timestamps):
 # environment
 env_id = "ALE/KingKong-v5"
 save_model_path = 'models/kingkong_ppo_v1.zip'
-tensorboard_path = './ppo_kingkong_img_logs/'
+tensorboard_path = './logs/ppo_kingkong_img_logs/'
 training_timestamps = 200000
 
-train_env = make_atari_env(env_id, n_envs=4, seed=0) # specjalna funkcja która opakowuje atari na 84x84 bez kolorów do ppo
+train_env = make_atari_env(env_id, n_envs=4, seed=0) # special function, which makes 84Xx4 grayscale frames for PPO
 train_env = VecFrameStack(train_env, n_stack=4)
 
 # loading model
@@ -57,6 +57,7 @@ test_env = make_atari_env(env_id, n_envs=1, env_kwargs={"render_mode": "human"})
 test_env = VecFrameStack(test_env, n_stack=4)
 
 if __name__ == '__main__':
+    #bot v1
     train_model(train_env, save_model_path, tensorboard_path, training_timestamps)
 
     test_model(test_env, model_path, testing_timestamps)

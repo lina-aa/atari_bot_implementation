@@ -3,6 +3,10 @@ import ale_py
 import time
 from pynput import keyboard
 
+'''
+This script allows to manually control the King Kong game using the arrow keys and spacebar
+'''
+
 current_action = 0
 
 def on_press(key):
