@@ -1,4 +1,10 @@
 ## Atari game bot implementation for AI in game development PWr course
+### Authors:
+- Karolina Bajer
+- Zuzanna Gorczyca
+- Natalia Tymczyszyn
+
+------------------------------------------------------------------
 
 The objective of this project is to create a bot for Atari game.
 
