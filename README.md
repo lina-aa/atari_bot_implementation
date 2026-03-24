@@ -20,9 +20,5 @@ RAM adress  for the player y positon was checked using ram_map_y.py. It was iden
 
 ### Milestones:
 - 24.03: learn the bot to play chosen Atari game. Next milestones to be disscussed on the meeting.
-
-### Current proposals for next milestones:
-- make the bot win the game, currently it can do basic moves but it only loses
-- check wheather different algorithm than PPO("CnnPolicy") would give better results
-- make a bot for more complex game (which has more states than KingKong - 6), ex. Montezuma’s Revenge or Donkey Kong
-
+- 5.05: make the bot win the game, currently it can do basic moves but it only loses
+- 26.05: check if custom CNN architecture for PPO("CnnPolicy") would give better results
