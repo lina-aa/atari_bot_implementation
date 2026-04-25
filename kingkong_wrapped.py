@@ -1,5 +1,6 @@
 import os
 
+import ale_py
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.atari_wrappers import AtariWrapper
@@ -149,14 +150,14 @@ if __name__ == '__main__':
     model_path = "models/kingkong_ppo_v8.zip"
     log_path = "./logs/ppo_kingkong_v8_logs/"
 
-    train_model(
-        model_path,
-        log_path,
-        2_000_000,
-        additional_training=False,
-        height_wrapper_cls=KingKongHeightWrapper7,
-        terminal_on_life_loss=True,
-    )
+    # train_model(
+    #     model_path,
+    #     log_path,
+    #     2_000_000,
+    #     additional_training=False,
+    #     height_wrapper_cls=KingKongHeightWrapper7,
+    #     terminal_on_life_loss=True,
+    # )
     # train_model(
     #     model_path,
     #     log_path,
