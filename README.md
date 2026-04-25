@@ -15,7 +15,6 @@ Bot versions in this repo:
 2. v2 - bot with a early custom wrapper that gave additional reward for getting higher; only stood in the corner, didn't do much (200 000 timesteps across 4 parallel environments)
 3. v3 - bot with upgraded wrapper; learned to use magicbombs to jump higher (200 000 timesteps + 2 000 000 additional timesteps across 4 parallel environments)
 
-
 RAM adress for the player y positon was checked using ram_map_y.py. It was identified as `0x21 (33)`.
 RAM adress for moving on a ladder was identified as `0x64 (100)`. Its default value is 0, which changes to 64 when on a ladder. Other checked values: 39, 60, 61, 62.
 
