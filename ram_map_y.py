@@ -29,13 +29,14 @@ listener.start()
 env = gym.make("ALE/KingKong-v5", render_mode="human", mode=2)
 obs, _ = env.reset()
 
-print(f"{'akcja':>6} | {'(100)':>10} | {'(33)':>10}")
+# 36 changes from 0 to 255 when moving on X axis
+print(f"{'akcja':>6} | {'(100)':>10} | {'(33)':>10} | {'(36)':>10}")
 
 while True:
     obs, reward, terminated, truncated, info = env.step(current_action)
     ram = env.unwrapped.ale.getRAM()
 
-    print(f"{current_action:>6} | {ram[100]:>10} | {ram[33]:>10}", end="\r")
+    print(f"{current_action:>6} | {ram[100]:>10} | {ram[33]:>10} | {ram[36]:>10}", end="\r")
 
     time.sleep(0.05)
     if terminated or truncated:

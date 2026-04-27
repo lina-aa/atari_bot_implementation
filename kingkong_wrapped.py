@@ -14,6 +14,7 @@ from kingkong_bot_v5 import KingKongHeightWrapper4
 from kingkong_bot_v6 import KingKongHeightWrapper5
 from kingkong_bot_v7 import KingKongHeightWrapper6
 from kingkong_bot_v8 import KingKongHeightWrapper7
+from kingkong_bot_v9 import KingKongHeightWrapper8
 from kingkong_wrapper_base import (
     LADDER_ON_VALUE,
     LADDER_RAM_ADDR,
@@ -41,6 +42,7 @@ __all__ = [
     "KingKongHeightWrapper5",
     "KingKongHeightWrapper6",
     "KingKongHeightWrapper7",
+    "KingKongHeightWrapper8",
     "NUMBER_OF_ENVS",
     "make_kingkong_env",
     "train_model",
@@ -108,9 +110,9 @@ def train_model(
             verbose=0,
             tensorboard_log=tensorboard_path,
             learning_rate=0.00025,
-            n_steps=256,
+            n_steps=1024, # zwiększone
             batch_size=256,
-            ent_coef=0.10, # MORE ENTROPY FOR EXPLORATION !!
+            ent_coef=0.01,
         )
 
         model.learn(total_timesteps=training_timestamps, tb_log_name="PPO_1")
@@ -147,15 +149,15 @@ def test_model(model_path, testing_timestamps, height_wrapper_cls=KingKongHeight
 
 
 if __name__ == '__main__':
-    model_path = "models/kingkong_ppo_v8.zip"
-    log_path = "./logs/ppo_kingkong_v8_logs/"
+    model_path = "models/kingkong_ppo_v9.1.zip"
+    log_path = "./logs/ppo_kingkong_v9.1_logs/"
 
     # train_model(
     #     model_path,
     #     log_path,
     #     2_000_000,
     #     additional_training=False,
-    #     height_wrapper_cls=KingKongHeightWrapper7,
+    #     height_wrapper_cls=KingKongHeightWrapper8,
     #     terminal_on_life_loss=True,
     # )
     # train_model(
@@ -163,13 +165,16 @@ if __name__ == '__main__':
     #     log_path,
     #     3_000_000,
     #     additional_training=True,
-    #     height_wrapper_cls=KingKongHeightWrapper7,
+    #     height_wrapper_cls=KingKongHeightWrapper8,
     #     terminal_on_life_loss=False,
     # )
-    test_model(model_path, 5000, height_wrapper_cls=KingKongHeightWrapper7)
+    test_model(model_path, 5000, height_wrapper_cls=KingKongHeightWrapper8)
 
-# v4: jumps well, ignores ladder, lots of in-place jumping
-# v5: less random than v4, still weak on ladders
-# v6: KingKongHeightWrapper5 — dense delta-Y + milestones + level-up; 2-stage curriculum
-# v7: KingKongHeightWrapper6 — simple delta-Y + 64→0 exit; v7.1 is coefficient tuning
-# v8: KingKongHeightWrapper7 — stall, ladder loiter, jump-in-place penalty, exit >=, ent 0.10
+# te wersje v4 - v8 są dość słabe, ale zosatwia jako inspiracja maybe ~N
+# v4: KingKongHeightWrapper3 - jumps well, ignores ladder, lots of in-place jumping
+# v5: KingKongHeightWrapper4 - less random than v4, still weak on ladders
+# v6: KingKongHeightWrapper5 - dense delta-Y + milestones + level-up; 2-stage curriculum
+# v7: KingKongHeightWrapper6 - simple delta-Y + 64→0 exit; v7.1 is coefficient tuning
+# v8: KingKongHeightWrapper7 - stall, ladder loiter, jump-in-place penalty, ent 0.10
+# v9: KingKongHeightWrapper8 - zmiana PPO n_steps=1024, ent_coef=0.01
+# v9.1: KingKongHeightWrapper8 - jak już był koło drabiny to rzeczywiście na nią wszedł na kolejne piętro
