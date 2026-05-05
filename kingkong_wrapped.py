@@ -6,6 +6,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.atari_wrappers import AtariWrapper
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack
+import torch
 
 from kingkong_bot_v2 import KingKongHeightWrapper1
 from kingkong_bot_v3 import KingKongHeightWrapper2
@@ -15,6 +16,7 @@ from kingkong_bot_v6 import KingKongHeightWrapper5
 from kingkong_bot_v7 import KingKongHeightWrapper6
 from kingkong_bot_v8 import KingKongHeightWrapper7
 from kingkong_bot_v9 import KingKongHeightWrapper8
+from kingkong_bot_v10 import KingKongHeightWrapper10
 from kingkong_wrapper_base import (
     LADDER_ON_VALUE,
     LADDER_RAM_ADDR,
@@ -43,6 +45,7 @@ __all__ = [
     "KingKongHeightWrapper6",
     "KingKongHeightWrapper7",
     "KingKongHeightWrapper8",
+    "KingKongHeightWrapper10",
     "NUMBER_OF_ENVS",
     "make_kingkong_env",
     "train_model",
@@ -95,7 +98,7 @@ def train_model(
             print(f"Model path {save_model_path} does not exist. Please provide a valid path for additional training.")
             return
 
-        model = PPO.load(save_model_path, env=train_env)
+        model = PPO.load(save_model_path, env=train_env, device="cuda" if torch.cuda.is_available() else "cpu")
 
         model.learn(
             total_timesteps=training_timestamps,
@@ -107,12 +110,13 @@ def train_model(
         model = PPO(
             "CnnPolicy",
             train_env,
-            verbose=0,
+            verbose=1,
             tensorboard_log=tensorboard_path,
             learning_rate=0.00025,
             n_steps=1024, # zwiększone
             batch_size=256,
             ent_coef=0.01,
+            device="cuda" if torch.cuda.is_available() else "cpu",
         )
 
         model.learn(total_timesteps=training_timestamps, tb_log_name="PPO_1")
@@ -135,7 +139,7 @@ def test_model(model_path, testing_timestamps, height_wrapper_cls=KingKongHeight
     )
     test_env = VecFrameStack(test_env, n_stack=4)
 
-    model = PPO.load(model_path, env=test_env)
+    model = PPO.load(model_path, env=test_env, device="cuda" if torch.cuda.is_available() else "cpu")
     obs = test_env.reset()
 
     for _ in range(testing_timestamps):
@@ -149,26 +153,28 @@ def test_model(model_path, testing_timestamps, height_wrapper_cls=KingKongHeight
 
 
 if __name__ == '__main__':
-    model_path = "models/kingkong_ppo_v9.1.zip"
-    log_path = "./logs/ppo_kingkong_v9.1_logs/"
+    model_path = "models/kingkong_ppo_v9-10.zip"
+    log_path = "./logs/ppo_kingkong_v9-10_logs/"
 
+    # Faza 1: nauka przeżywania i wchodzenia na drabiny
     # train_model(
     #     model_path,
     #     log_path,
     #     2_000_000,
     #     additional_training=False,
-    #     height_wrapper_cls=KingKongHeightWrapper8,
+    #     height_wrapper_cls=KingKongHeightWrapper10,
     #     terminal_on_life_loss=True,
     # )
+    # # Faza 2: nauka wspinania na wyższe piętra
     # train_model(
     #     model_path,
     #     log_path,
     #     3_000_000,
     #     additional_training=True,
-    #     height_wrapper_cls=KingKongHeightWrapper8,
+    #     height_wrapper_cls=KingKongHeightWrapper10,
     #     terminal_on_life_loss=False,
     # )
-    test_model(model_path, 5000, height_wrapper_cls=KingKongHeightWrapper8)
+    test_model(model_path, 5000, height_wrapper_cls=KingKongHeightWrapper10)
 
 # te wersje v4 - v8 są dość słabe, ale zosatwia jako inspiracja maybe ~N
 # v4: KingKongHeightWrapper3 - jumps well, ignores ladder, lots of in-place jumping
@@ -178,3 +184,4 @@ if __name__ == '__main__':
 # v8: KingKongHeightWrapper7 - stall, ladder loiter, jump-in-place penalty, ent 0.10
 # v9: KingKongHeightWrapper8 - zmiana PPO n_steps=1024, ent_coef=0.01
 # v9.1: KingKongHeightWrapper8 - jak już był koło drabiny to rzeczywiście na nią wszedł na kolejne piętro
+# v9-10 KingKongHeightWrapper10 - udąło sie dojsc do 4 pietra znajduje pierwsza drabiine i po niej wchodzi ale potem czesto idzie w ściane

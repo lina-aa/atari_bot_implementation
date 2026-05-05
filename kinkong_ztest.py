@@ -3,75 +3,82 @@ import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.atari_wrappers import AtariWrapper
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecFrameStack
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecFrameStack
+from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 import torch
-from atari_bot_implementation.kingkong_bot_v10 import KingKongHeightWrapper8
+from kingkong_bot_v10 import KingKongHeightWrapper10
+import time
 
-def make_kingkong_env(rank, seed=0, height_wrapper_cls=KingKongHeightWrapper8):
+
+def make_kingkong_env(rank, seed=0, height_wrapper_cls=KingKongHeightWrapper10):
     def _init():
         env = gym.make("ALE/KingKong-v5")
         env = AtariWrapper(env, terminal_on_life_loss=True)
-        env = height_wrapper_cls(env)  # ← Wrapper TUTAJ, zanim wektoryzujemy
+        env = height_wrapper_cls(env)
         env = Monitor(env)
         env.reset(seed=seed + rank)
         return env
     return _init
 
-def train_model(train_env, save_model_path, tensorboard_path, training_timestamps):
+
+def train_model(train_env, eval_env, save_model_path, tensorboard_path, training_timestamps):
+
+    # 🔥 CALLBACKI
+    eval_callback = EvalCallback(
+        eval_env,
+        best_model_save_path="./logs/best_model/",
+        log_path="./logs/results/",
+        eval_freq=50_000,
+        n_eval_episodes=5,
+        deterministic=True,
+    )
+
+    checkpoint_callback = CheckpointCallback(
+        save_freq=200_000,
+        save_path="./checkpoints/",
+        name_prefix="kingkong"
+    )
+
     model = PPO(
-        "CnnPolicy",          
-        train_env, 
-        verbose=1, 
+        "CnnPolicy",
+        train_env,
+        verbose=1,
         tensorboard_log=tensorboard_path,
-        learning_rate=0.0001,
-        n_steps=512,
-        batch_size=64,
-        ent_coef=0.01,
+        learning_rate=1e-4,
+        n_steps=1024,              
+        batch_size=256,            
+        ent_coef=0.02,             
         gae_lambda=0.95,
         clip_range=0.2,
         gamma=0.99,
-        device="cuda" #if torch.cuda.is_available() else "cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
     )
-    model.learn(total_timesteps=training_timestamps)
+
+    model.learn(
+        total_timesteps=training_timestamps,
+        callback=[eval_callback, checkpoint_callback]
+    )
+
     model.save(save_model_path)
     train_env.close()
 
-def test_model(model_path, testing_timestamps, height_wrapper_cls=KingKongHeightWrapper8):
-    test_env = DummyVecEnv(
-        [
-            make_kingkong_env(
-                0,
-                seed=42,
-                render_mode="human",
-                height_wrapper_cls=height_wrapper_cls,
-                terminal_on_life_loss=False,
-            )
-        ]
-    )
-    test_env = VecFrameStack(test_env, n_stack=4)
-
-    model = PPO.load(model_path, env=test_env)
-    obs = test_env.reset()
-
-    for _ in range(testing_timestamps):
-        action, _ = model.predict(obs, deterministic=True)
-        obs, rewards, dones, info = test_env.step(action)
-        test_env.render()
-        if dones[0]:
-            obs = test_env.reset()
-
-    test_env.close()
-
 
 if __name__ == '__main__':
-    save_model_path = 'models/kingkong_ppo_v9_improved.zip'
-    tensorboard_path = './logs/ppo_kingkong_v9_logs/'
-    training_timestamps = 2000000
-    n_envs = 2
+    save_model_path = 'models/kingkong_ppo_v10_new.zip'
+    tensorboard_path = './logs/ppo_kingkong_v10_new/'
+    
+    training_timestamps = 10_000_000  
+    n_envs = 4                         
 
-    # Prawidłowa kolejność: SubprocVecEnv → VecFrameStack
+    start = time.time()
+
     train_env = SubprocVecEnv([make_kingkong_env(i) for i in range(n_envs)])
     train_env = VecFrameStack(train_env, n_stack=4)
 
-    train_model(train_env, save_model_path, tensorboard_path, training_timestamps)
-    # test_model(save_model_path, testing_timestamps=5000, height_wrapper_cls=KingKongHeightWrapper8)
+    eval_env = SubprocVecEnv([make_kingkong_env(999)])
+    eval_env = VecFrameStack(eval_env, n_stack=4)
+
+    train_model(train_env, eval_env, save_model_path, tensorboard_path, training_timestamps)
+
+    stop = time.time()
+    print(f"Training completed in {stop - start:.2f} seconds.")
