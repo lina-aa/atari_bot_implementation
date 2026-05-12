@@ -21,4 +21,4 @@ RAM adress for moving on a ladder was identified as `0x64 (100)`. Its default va
 ### Milestones:
 - 24.03: learn the bot to play chosen Atari game. Next milestones to be disscussed on the meeting.
 - 5.05: make the bot win the game, currently it can do basic moves but it only loses
-- 26.05: check if custom CNN architecture for PPO("CnnPolicy") would give better results
+- 16.06: 5-10min presentation of results during lecture
