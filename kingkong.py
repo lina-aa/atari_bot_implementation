@@ -2,7 +2,7 @@ import ale_py
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_atari_env
-from stable_baselines3.common.vec_env import VecFrameStack
+from stable_baselines3.common.vec_env import VecFrameStack, VecVideoRecorder
 
 """
 Basic bot implementation using PPO (Bot v1)
@@ -53,12 +53,21 @@ train_env = VecFrameStack(train_env, n_stack=4)
 model_path = "models/kingkong_ppo_v1.zip"
 testing_timestamps = 5000
 
-test_env = make_atari_env(env_id, n_envs=1, env_kwargs={"render_mode": "human"})
+test_env = make_atari_env(env_id, n_envs=1, env_kwargs={"render_mode": "rgb_array"})
 test_env = VecFrameStack(test_env, n_stack=4)
+
+# recording
+test_env = VecVideoRecorder(
+    test_env, 
+    video_folder="videos/",                 
+    record_video_trigger=lambda x: x == 0, 
+    video_length=1000,                     
+    name_prefix="kingkong-v1-agent"
+)
 
 if __name__ == '__main__':
     #bot v1
-    train_model(train_env, save_model_path, tensorboard_path, training_timestamps)
+    # train_model(train_env, save_model_path, tensorboard_path, training_timestamps)
 
     test_model(test_env, model_path, testing_timestamps)
 
